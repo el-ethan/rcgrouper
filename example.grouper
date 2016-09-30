@@ -1,0 +1,7 @@
+[rcgrouper]
+keywords = emax,4s,shendrones,armattan,scx200
+
+[email]
+username = foo@barmail.baz
+password = 12345
+toaddr = mail@mailmail.mail

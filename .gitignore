@@ -1,0 +1,5 @@
+__pychache__/
+.cache/
+*.pyc
+matches.txt
+.grouper

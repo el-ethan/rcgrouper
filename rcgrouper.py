@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import smtplib
 import ConfigParser
 import requests
@@ -44,7 +46,7 @@ class Page(object):
 Here are the posts matching your keywords ({}):
 
 {}
-        """.format(self.config.get('rcgrouper', 'keywords'), '\n'.join(new_matches))
+        """.format(self.config.get('rcgrouper', 'keywords'), '\n\n'.join(new_matches))
         msg = 'Subject: %s\n\n%s' % ('Posts you may be interested in', msg_body)
         server = smtplib.SMTP('smtp.gmail.com:587')
         server.ehlo()

@@ -1,12 +1,19 @@
 #!/usr/bin/python
 
+import textwrap
+from datetime import datetime
+import os
 import smtplib
 import ConfigParser
-import requests
 from bs4 import BeautifulSoup
+import requests
 
+# TODO clear out matching links list periodically
 
 ROOT_URL = 'http://www.rcgroups.com/forums/'
+PROJECT_DIR = os.path.dirname(__file__)
+MATCH_FILE = os.path.join(PROJECT_DIR, 'matches.txt')
+CONFIG_FILE = os.path.join(PROJECT_DIR, '.grouper')
 
 
 class Page(object):
@@ -24,15 +31,13 @@ class Page(object):
         for a in a_tags:
             if any(kw.lower().strip() in a.text.lower() for kw in self.keywords):
                 matching_tags.append(a)
-
-        return [ROOT_URL + t.attrs['href'] for t in matching_tags]
+        return matching_tags
 
     @property
     def new_matches(self):
-        with open('matches.txt', 'a+') as f:
+        with open(MATCH_FILE, 'a+') as f:
             past_matches = f.read()
-
-        return [m for m in self.matches if m not in past_matches]
+        return [m for m in self.matches if m.attrs['href'] not in past_matches]
 
     def email_matching_posts(self):
         new_matches = self.new_matches
@@ -42,11 +47,13 @@ class Page(object):
         username = fromaddr = self.config.get('email', 'username')
         toaddr = self.config.get('email', 'toaddr')
         password = self.config.get('email', 'password')
-        msg_body = """
-Here are the posts matching your keywords ({}):
+        keywords = self.config.get('rcgrouper', 'keywords')
+        match_details = [m.text + '\n' + ROOT_URL + m.attrs['href'] for m in new_matches]
+        msg_body = textwrap.dedent("""\
+        Here are the posts matching your keywords ({}):
 
-{}
-        """.format(self.config.get('rcgrouper', 'keywords'), '\n\n'.join(new_matches))
+        {}
+        """).format(keywords, '\n\n'.join(match_details))
         msg = 'Subject: %s\n\n%s' % ('Posts you may be interested in', msg_body)
         server = smtplib.SMTP('smtp.gmail.com:587')
         server.ehlo()
@@ -54,14 +61,15 @@ Here are the posts matching your keywords ({}):
         server.login(username, password)
         server.sendmail(fromaddr, toaddr, msg)
         server.quit()
-        with open('matches.txt', 'a') as f:
+        with open(MATCH_FILE, 'a') as f:
+            f.write('Checked on ' + datetime.now().strftime('%Y-%m-%d %H:%M') + '\n')
             for m in self.new_matches:
-                f.write(m + '\n')
+                f.write(ROOT_URL + m.attrs['href'] + '\n')
 
 
 if __name__ == '__main__':
     r = requests.get('http://www.rcgroups.com/aircraft-electric-multirotor-fs-w-733/')
-    config = ConfigParser.RawConfigParser()
-    config.read('.grouper')
-    page = Page(r.text, config=config)
+    cfg = ConfigParser.RawConfigParser()
+    cfg.read(CONFIG_FILE)
+    page = Page(r.text, config=cfg)
     page.email_matching_posts()

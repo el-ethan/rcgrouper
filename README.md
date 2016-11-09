@@ -11,4 +11,4 @@ Script to get postings from RCGroups.com Classifieds matching user-defined keywo
         # and in the crontab file:
         * * * * * /path/to/rcgrouper.py
 
-    This will set the script to run once a minute. However, not that you will only be sent postings if they are new (i.e., if you have not been sent them before).
+    This will set the script to run once a minute. However, note that you will only be sent postings if they are new (i.e., if you have not been sent them before).

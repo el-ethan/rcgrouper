@@ -1,5 +1,9 @@
 [rcgrouper]
 keywords = emax,4s,shendrones,armattan,scx200
+ignore_keywords =
+sites_to_check = multirotor,fpv
+for_sale_only = true
+match_expiration = 2016-11-16
 
 [email]
 username = foo@barmail.baz

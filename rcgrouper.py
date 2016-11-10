@@ -20,7 +20,7 @@ ROOT_URL = 'http://www.rcgroups.com/forums/'
 PROJECT_DIR = os.path.dirname(__file__)
 MATCH_FILE = os.path.join(PROJECT_DIR, 'matches.txt')
 CONFIG_FILE = os.path.join(PROJECT_DIR, '.grouper')
-
+DATE_FORMAT = '%Y-%m-%d'
 
 class Page(object):
 
@@ -72,6 +72,11 @@ class Page(object):
             for m in self.new_matches:
                 f.write(ROOT_URL + m.attrs['href'] + '\n')
 
+def set_expiration_date(config):
+    new_exp = datetime.now() + timedelta(weeks=1)
+    config.set('rcgrouper', 'match_expiration', new_exp.strftime(DATE_FORMAT))
+    with open('.grouper', 'wb') as configfile:
+        config.write(configfile)
 
 def cleanup_matches(config):
     '''Clean up old matches and set new expiration date if necessary
@@ -80,16 +85,14 @@ def cleanup_matches(config):
     empty matches.txt file and update config with new expiration date
     one week in the future.
     '''
-    _now = datetime.now()
-    date_fmt = '%Y-%m-%d'
     exp = config.get('rcgrouper', 'match_expiration')
-    exp_dt = datetime.strptime(exp, date_fmt)
-    if _now >= exp_dt:
+    if not exp:
+        set_expiration_date(config)
+        return
+    exp_dt = datetime.strptime(exp, DATE_FORMAT)
+    if datetime.now() >= exp_dt:
         open(MATCH_FILE, 'w').close()
-        new_exp = _now + timedelta(weeks=1)
-        config.set('rcgrouper', 'match_expiration', new_exp.strftime(date_fmt))
-        with open('.grouper', 'wb') as configfile:
-            config.write(configfile)
+        set_expiration_date(config)
 
 
 if __name__ == '__main__':

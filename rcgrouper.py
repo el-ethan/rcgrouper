@@ -11,6 +11,7 @@ import requests
 SITES = {
     'multirotor': 'http://www.rcgroups.com/aircraft-electric-multirotor-fs-w-733/',
     'fpv': 'https://www.rcgroups.com/fpv-equipment-fs-w-710/',
+    'lipo': 'https://www.rcgroups.com/aircraft-electric-batteries-and-chargers-fs-w-284/',
 }
 
 ROOT_URL = 'http://www.rcgroups.com/forums/'

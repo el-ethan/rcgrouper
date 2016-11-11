@@ -60,7 +60,7 @@ class Page(object):
         Here are the posts matching your keywords ({}):
 
         {}
-        """).format(keywords, '\n\n'.join(match_details))
+        """).format(keywords, '\n\n'.join(match_details).encode('utf-8'))
         msg = 'Subject: %s\n\n%s' % ('Posts you may be interested in', msg_body)
         server = smtplib.SMTP('smtp.gmail.com:587')
         server.ehlo()

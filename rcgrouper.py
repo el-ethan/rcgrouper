@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import logging
 import textwrap
 from datetime import datetime, timedelta
 import os
@@ -20,6 +21,7 @@ MATCH_FILE = os.path.join(PROJECT_DIR, 'matches.txt')
 CONFIG_FILE = os.path.join(PROJECT_DIR, '.grouper')
 DATE_FORMAT = '%Y-%m-%d'
 
+logging.basicConfig(filename='grouper.log', format='%(asctime)s: %(message)s', level=logging.DEBUG)
 
 class Page(object):
 
@@ -68,17 +70,21 @@ class Page(object):
         server.login(username, password)
         server.sendmail(fromaddr, toaddr, msg)
         server.quit()
+        date_sent = datetime.now().strftime('%Y-%m-%d %H:%M')
         with open(MATCH_FILE, 'a') as f:
-            f.write('Checked on ' + datetime.now().strftime('%Y-%m-%d %H:%M') + '\n')
+            f.write('Checked on ' + date_sent + '\n')
+            logging.info('Email sent at %s', date_sent)
             for m in self.get_new_matches():
                 f.write(ROOT_URL + m.attrs['href'] + '\n')
 
 def set_expiration_date(config):
     '''Set a new expiration date in config file 1 week in future'''
     new_exp = datetime.now() + timedelta(weeks=1)
-    config.set('rcgrouper', 'match_expiration', new_exp.strftime(DATE_FORMAT))
+    exp_string = new_exp.strftime(DATE_FORMAT)
+    config.set('rcgrouper', 'match_expiration', exp_string)
     with open('.grouper', 'wb') as configfile:
         config.write(configfile)
+    logging.info('New expiration date set to %s', exp_string)
 
 def cleanup_matches(config):
     '''Clean up old matches and set new expiration date if necessary
@@ -90,10 +96,12 @@ def cleanup_matches(config):
     exp = config.get('rcgrouper', 'match_expiration')
     if not exp:
         set_expiration_date(config)
+        logging.info('Expiration set for the first time')
         return
     exp_dt = datetime.strptime(exp, DATE_FORMAT)
     if datetime.now() >= exp_dt:
         open(MATCH_FILE, 'w').close()
+        logging.info('Match file cleared')
         set_expiration_date(config)
 
 

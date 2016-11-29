@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import logging
+import logging.handlers
 import textwrap
 from datetime import datetime, timedelta
 import os
@@ -22,7 +23,11 @@ CONFIG_FILE = os.path.join(PROJECT_DIR, '.grouper')
 LOG_FILE = os.path.join(PROJECT_DIR, 'grouper.log')
 DATE_FORMAT = '%Y-%m-%d'
 
-logging.basicConfig(filename=LOG_FILE, format='%(asctime)s: %(message)s', level=logging.DEBUG)
+handler = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=10000, backupCount=3)
+logging.basicConfig(filename=LOG_FILE, format='%(asctime)s: %(message)s', level=logging.INFO)
+grouper_logger = logging.getLogger()
+grouper_logger.addHandler(handler)
+
 
 class Page(object):
 
@@ -74,7 +79,7 @@ class Page(object):
         date_sent = datetime.now().strftime('%Y-%m-%d %H:%M')
         with open(MATCH_FILE, 'a') as f:
             f.write('Checked on ' + date_sent + '\n')
-            logging.info('Email sent at %s', date_sent)
+            grouper_logger.info('Email sent at %s', date_sent)
             for m in self.get_new_matches():
                 f.write(ROOT_URL + m.attrs['href'] + '\n')
 
@@ -85,7 +90,7 @@ def set_expiration_date(config):
     config.set('rcgrouper', 'match_expiration', exp_string)
     with open(CONFIG_FILE, 'wb') as configfile:
         config.write(configfile)
-    logging.info('New expiration date set to %s', exp_string)
+    grouper_logger.info('New expiration date set to %s', exp_string)
 
 def cleanup_matches(config):
     '''Clean up old matches and set new expiration date if necessary
@@ -97,12 +102,12 @@ def cleanup_matches(config):
     exp = config.get('rcgrouper', 'match_expiration')
     if not exp:
         set_expiration_date(config)
-        logging.info('Expiration set for the first time')
+        grouper_logger.info('Expiration set for the first time')
         return
     exp_dt = datetime.strptime(exp, DATE_FORMAT)
     if datetime.now() >= exp_dt:
         open(MATCH_FILE, 'w').close()
-        logging.info('Match file cleared')
+        grouper_logger.info('Match file cleared')
         set_expiration_date(config)
 
 

@@ -19,9 +19,10 @@ ROOT_URL = 'http://www.rcgroups.com/forums/'
 PROJECT_DIR = os.path.dirname(__file__)
 MATCH_FILE = os.path.join(PROJECT_DIR, 'matches.txt')
 CONFIG_FILE = os.path.join(PROJECT_DIR, '.grouper')
+LOG_FILE = os.path.join(PROJECT_DIR, 'grouper.log')
 DATE_FORMAT = '%Y-%m-%d'
 
-logging.basicConfig(filename='grouper.log', format='%(asctime)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(filename=LOG_FILE, format='%(asctime)s: %(message)s', level=logging.DEBUG)
 
 class Page(object):
 
@@ -82,7 +83,7 @@ def set_expiration_date(config):
     new_exp = datetime.now() + timedelta(weeks=1)
     exp_string = new_exp.strftime(DATE_FORMAT)
     config.set('rcgrouper', 'match_expiration', exp_string)
-    with open('.grouper', 'wb') as configfile:
+    with open(CONFIG_FILE, 'wb') as configfile:
         config.write(configfile)
     logging.info('New expiration date set to %s', exp_string)
 

@@ -43,7 +43,7 @@ class Page(object):
         a_tags = soup.find_all('a')
         matching_tags = []
         for a in a_tags:
-            if any(kw.lower().strip() in a.text.lower() for kw in self.keywords):
+            if any(kw.lower().strip() in a.text.lower().split(' ') for kw in self.keywords):
                 matching_tags.append(a)
         return matching_tags
 

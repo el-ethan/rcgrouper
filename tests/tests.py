@@ -25,6 +25,8 @@ raw_page = """
     <body>
     <a class="fsw-title" data-tip="I am selling (5) Cobra 2204/28 2300kv motors. (4) of them have been used since February of this year and (1) is brand new and never used. Purchased all five at the same time so they are from the same..." href="showthread.php?s=b361e21c350552894dd3b99351cb9cfe&amp;t=2749775" id="thread_title_2749775" rel="tooltip">Five Cobra 2204/28 2300kv Motors - with FREE shipping!</a>
     <a href='123'>Emax motors for sale</a>
+    <a href='345'>AlienVsPredator</a>
+    <a href='567'>Alien 5", RR edition</a>
     </body>
     </html>
     """
@@ -80,3 +82,12 @@ def test_cleanup_matches(mock_mf):
     mock_mf = 'matches.txt'
     cleanup_matches(CONFIG_OBJ)
     assert CONFIG_OBJ.get('rcgrouper', 'match_expiration') ==  now_str
+
+def test_only_match_full_words():
+    mock_config = Mock()
+    mock_config.get.return_value = "Alien"
+    page = Page(raw_page, config=mock_config)
+    matches = [m.attrs['href'] for m in page.get_kw_matches()]
+    assert len(matches) == 1
+    assert '567' in matches
+    assert '345' not in matches
